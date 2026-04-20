@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useRef, useEffect } from 'react';
+import { useActionState, useRef, useEffect, useState } from 'react';
 import { summarizeFile, type SummaryState } from './actions';
 
 const initialState: SummaryState = { error: null, summary: null };
@@ -8,11 +8,13 @@ const initialState: SummaryState = { error: null, summary: null };
 export default function Home() {
   const [state, formAction, pending] = useActionState(summarizeFile, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Optional: clear file input on successful summarize if preferred
   useEffect(() => {
     if (state.summary && !pending) {
       formRef.current?.reset();
+      setSelectedFile(null);
     }
   }, [state.summary, pending]);
 
@@ -40,12 +42,24 @@ export default function Home() {
                 htmlFor="file" 
                 className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-neutral-700/50 rounded-2xl bg-neutral-900/50 hover:bg-neutral-800/50 hover:border-indigo-500/50 transition-all cursor-pointer overflow-hidden"
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg className="w-10 h-10 mb-4 text-indigo-400 group-hover:text-indigo-300 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                  </svg>
-                  <p className="mb-2 text-sm text-neutral-300"><span className="font-semibold text-white">Click to upload</span> or drag and drop</p>
-                  <p className="text-xs text-neutral-500 font-mono">TXT, MD, CSV, JSON</p>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center w-full max-w-[80%] mx-auto">
+                  {selectedFile ? (
+                    <>
+                      <svg className="w-12 h-12 mb-4 text-green-400 group-hover:text-green-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="mb-2 text-base text-neutral-200 font-semibold truncate w-full">{selectedFile.name}</p>
+                      <p className="text-xs text-neutral-500 font-mono">Click to change file</p>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-10 h-10 mb-4 text-indigo-400 group-hover:text-indigo-300 transition-colors" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                      </svg>
+                      <p className="mb-2 text-sm text-neutral-300"><span className="font-semibold text-white">Click to upload</span> or drag and drop</p>
+                      <p className="text-xs text-neutral-500 font-mono">TXT, MD, CSV, JSON</p>
+                    </>
+                  )}
                 </div>
                 <input
                   type="file"
@@ -53,6 +67,7 @@ export default function Home() {
                   name="file"
                   accept=".txt,.csv,.md,.json"
                   className="hidden"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   required
                 />
               </label>
